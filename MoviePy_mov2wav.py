@@ -2,8 +2,8 @@ import os
 from moviepy.editor import VideoFileClip
 
 # Define the folder containing the .mov videos
-input_folder = "LetItFlow-RAW-Martina"
-output_folder = "Martina"
+input_folder = "LetItFlow-RAW-Rudi"
+output_folder = "Rudi"
 
 # Ensure the output folder exists
 if not os.path.exists(output_folder):

@@ -1,0 +1,26 @@
+
+/* Definir a fonte global para toda a apresentação */
+.reveal {
+  font-family: 'Inter', sans-serif !important;
+  color: #22113E !important;
+}
+
+/* Estilos para títulos */
+.reveal h1 {
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-size: 3rem !important;
+  color: #08F2DB !important;
+}
+
+.reveal h2 {
+  font-family: 'Courier Prime', monospace !important;
+  font-size: 2rem !important;
+  color: #EA7DFF !important;
+}
+
+/* Estilos para listas */
+.reveal ul {
+  color: #CAD8D8 !important;
+  font-size: 1.25rem !important;
+}
+

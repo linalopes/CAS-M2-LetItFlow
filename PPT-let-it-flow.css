@@ -1,0 +1,237 @@
+/* Import fonts from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap');
+
+/* Define the Branding colors (used across the presentation for background, text, etc.) */
+:root {
+  --deep-purple: #22113E;
+  --gray-green: #CAD8D8;
+  --pink: #EA7DFF;
+  --turquoise: #08F2DB;
+}
+
+/* Set the base font size for the entire presentation */
+html {
+  font-size: 200%; /* Set to 200% of the default browser size (typically 32px) */
+}
+
+/* Global styles for the body of the slides */
+body {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  font-size: 1rem; /* Standard paragraph font size */
+  color: var(--deep-purple); /* Default text color */
+  margin: 0;
+  padding: 0;
+}
+
+/* Heading styles for different slide titles */
+h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 300;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-family: 'Courier Prime', monospace;
+  font-weight: 400;
+  font-size: 3rem; /* Larger font size for emphasis */
+  margin-bottom: 0;
+}
+
+h3 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Paragraph, list, and line-height adjustments */
+p, ul, li, ol {
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+/* Link styles for hover effects */
+a { 
+  color: inherit; /* Inherit the color from the surrounding text */
+  transition: color 0.3s; /* Smooth transition effect on hover */
+} 
+a:hover {
+  color: rgba(0, 0, 0, 0.5); /* Dim color on hover */
+}
+
+/* Custom font classes for reuse across different slides */
+.font-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 300;
+}
+.font-highlight {
+  font-family: 'Courier Prime', monospace;  
+  font-weight: 400;
+}
+.font-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+}
+
+/* Font-size classes to manage different text scales based on REM (Responsive EM) */
+.fs-1 {
+  font-size: 1rem; /* Equivalent to 32px */
+}
+.fs-2 {
+  font-size: 1.25rem; /* Equivalent to 40px */
+}
+.fs-3 {
+  font-size: 1.5rem; /* Equivalent to 48px */
+}
+.fs-4 {
+  font-size: 2rem; /* Equivalent to 64px */
+}
+.fs-5 {
+  font-size: 2.5rem; /* Equivalent to 80px */
+}
+.fs-6 {
+  font-size: 3rem; /* Equivalent to 96px */
+}
+.fs-7 {
+  font-size: 4rem; /* Equivalent to 128px */
+}
+.fs-8 {
+  font-size: 5rem; /* Equivalent to 160px */
+}
+.fs-9 {
+  font-size: 6rem; /* Equivalent to 192px */
+}
+.fs-10 {
+  font-size: 7rem; /* Equivalent to 224px */
+}
+
+/* Utility classes for managing font styles */
+.fst-italic {
+  font-style: italic !important;
+}
+
+.fst-normal {
+  font-style: normal !important;
+}
+
+.fw-light {
+  font-weight: 300 !important;
+}
+
+.fw-normal {
+  font-weight: 400 !important;
+}
+
+.fw-bold {
+  font-weight: 700 !important;
+}
+
+/* Color classes to apply the theme's color palette */
+.deep-purple {
+  color: var(--deep-purple);
+}
+.fill-deep-purple {
+  fill: var(--deep-purple);
+}
+.bg-deep-purple {
+  background-color: var(--deep-purple);
+}
+.gray-green {
+  color: var(--gray-green);
+}
+.fill-gray-green {
+  fill: var(--gray-green);
+}
+.bg-gray-green {
+  background-color: var(--gray-green);
+}
+.pink {
+  color: var(--pink);
+}
+.fill-pink {
+  fill: var(--pink);
+}
+.bg-pink {
+  background-color: var(--pink);
+}
+.turquoise {
+  color: var(--turquoise);
+}
+.fill-turquoise {
+  fill: var(--turquoise);
+}
+.bg-turquoise {
+  background-color: var(--turquoise);
+}
+
+/* Styling for title slides with a background stripe */
+.slide-title-stripe {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  text-align: center;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  color: var(--deep-purple);
+}
+
+/* Two-column layout for slides with side-by-side text content */
+.slide-text-2columns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 2rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem; /* Standard size for body text */
+  line-height: 1.6;
+}
+
+.slide-text-2columns .column {
+  flex: 1; /* Each column takes equal space */
+}
+
+/* Full-screen background images for slides */
+.bg-image-1 {
+  background: url('https://live.staticflickr.com/65535/53813280343_2028d18a2d_k.jpg') no-repeat center center/cover;
+}
+.bg-image-2 {
+  background: url('https://live.staticflickr.com/65535/53813279853_b9b4af579f_k.jpg') no-repeat center center/cover;
+}
+.bg-image-3 {
+  background: url('https://live.staticflickr.com/65535/53813278983_9652c9570c_k.jpg') no-repeat center center/cover;
+}
+
+/* Utility classes for centering SVGs and controlling their size */
+.center-svg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+/* Image width utilities */
+.w-100 { width: 100%; }
+.w-75 { width: 75%; }
+.w-50 { width: 50%; }
+
+/* Padding utilities */
+.p-0 { padding: 0 !important; }
+.p-1 { padding: 1rem !important; }
+.p-2 { padding: 2rem !important; }
+
+/* Flexbox layout for content split across two columns */
+.two-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.two-columns > *:first-child {
+  flex: 1 1 30%; /* First column takes 30% */
+  text-align: center;
+}
+
+.two-columns > *:nth-child(2) {
+  flex: 1 1 65%; /* Second column takes 65% */
+}

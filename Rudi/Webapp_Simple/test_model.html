@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TensorFlow.js Model Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+    <h1>TensorFlow.js Model Test</h1>
+    <button id="testButton">Test Model</button>
+    <div id="output"></div>
+
+    <script>
+        let model;
+
+        async function loadModel() {
+            console.log("Loading model...");
+            model = await tf.loadGraphModel('model.json'); // Adjust path if necessary
+            console.log("Model Loaded Successfully");
+            console.log("Model Inputs:", model.inputs);
+            console.log("Model Outputs:", model.outputs);
+        }
+
+        async function testModel() {
+            if (!model) {
+                console.error("Model not loaded yet.");
+                return;
+            }
+
+            // Create a sample input tensor
+            let inputTensor = tf.randomNormal([1, 100, 13]); // Shape must match model input
+            console.log("Input Tensor Shape:", inputTensor.shape);
+
+            try {
+                // Execute the model with the correct input name
+                const prediction = await model.execute({ 'inputs': inputTensor });
+                console.log("Prediction:", prediction.arraySync()); // Log the prediction output
+                document.getElementById('output').innerText = `Prediction: ${prediction.arraySync()}`;
+            } catch (error) {
+                console.error("Error during prediction:", error);
+            }
+        }
+
+        document.getElementById("testButton").addEventListener("click", testModel);
+
+        // Load the model when the page is ready
+        loadModel();
+    </script>
+</body>
+</html>

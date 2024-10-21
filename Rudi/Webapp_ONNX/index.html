@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Tempo Detection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+</head>
+<body>
+    <button onclick="startListening()">Start Listening</button>
+    <button onclick="stopListening()">Stop Listening</button>
+    <script>
+        let audioContext, microphone, analyser, gainNode, dataArray, animationFrameId;
+        let p5Sketch;
+
+        async function startListening() {
+            try {
+                // Initialize audio context and microphone stream
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioContext.createMediaStreamSource(stream);
+
+                // Add a gain node to increase microphone sensitivity
+                gainNode = audioContext.createGain();
+                gainNode.gain.value = 3.0; // Increase sensitivity (Adjust as needed)
+
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048; // Increase to get more detailed audio data
+                analyser.smoothingTimeConstant = 0.2; // Adjust to reduce smoothing
+                dataArray = new Float32Array(analyser.fftSize);
+
+                // Connect nodes: microphone -> gain -> analyser
+                microphone.connect(gainNode);
+                gainNode.connect(analyser);
+
+                // Start p5.js sketch to visualize audio
+                if (!p5Sketch) {
+                    p5Sketch = new p5(waveformSketch);
+                }
+
+                // Start listening to audio
+                listenToAudio();
+            } catch (error) {
+                console.error("Microphone access denied or not available.", error);
+            }
+        }
+
+        function stopListening() {
+            if (audioContext && audioContext.state !== 'closed') {
+                audioContext.close();
+            }
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            console.log("Stopped listening.");
+        }
+
+        function listenToAudio() {
+            animationFrameId = requestAnimationFrame(listenToAudio);
+            analyser.getFloatTimeDomainData(dataArray);
+
+            // Visualize the audio waveform using p5.js
+            if (p5Sketch) {
+                p5Sketch.updateWaveform(dataArray);
+            }
+
+            // Preprocess `dataArray` to extract features and prepare input
+            const inputFeatures = extractFeatures(dataArray); // Define this function as needed
+
+            // Run the model if `inputFeatures` is ready
+            if (inputFeatures) {
+                runModel(inputFeatures);
+            }
+        }
+
+        async function runModel(features) {
+            try {
+                // Load the ONNX model
+                const session = await ort.InferenceSession.create('tempo_model.onnx');
+                const inputName = 'onnx::Gemm_0'; // Replace with actual input name
+
+                // Prepare input tensor
+                const feeds = {};
+                feeds[inputName] = new ort.Tensor('float32', features, [1, 416]); // Match with model input shape
+
+                // Run inference
+                const results = await session.run(feeds);
+                const outputName = '17'; // Replace with actual output name if different
+                const outputTensor = results[outputName];
+                console.log(`Detected Tempo: ${outputTensor.data}`);
+
+                // Optionally use p5.js for visual feedback
+            } catch (e) {
+                console.error("Failed to load or run the ONNX model:", e);
+            }
+        }
+
+        function extractFeatures(audioData) {
+            // Perform feature extraction (e.g., MFCC, Spectrogram) to match the expected input of the model
+            // Placeholder: Return processed data in required shape
+            return new Float32Array(416); // Example, adjust with actual feature processing
+        }
+
+        // p5.js sketch for visualizing the waveform
+        const waveformSketch = (sketch) => {
+            sketch.setup = () => {
+                sketch.createCanvas(600, 200);
+                sketch.background(200);
+            };
+
+            sketch.updateWaveform = (waveform) => {
+                sketch.clear();
+                sketch.background(200);
+                sketch.stroke(0);
+                sketch.noFill();
+                sketch.beginShape();
+                for (let i = 0; i < waveform.length; i++) {
+                    const x = sketch.map(i, 0, waveform.length, 0, sketch.width);
+                    const y = sketch.map(waveform[i], -1, 1, 0, sketch.height);
+                    sketch.vertex(x, y);
+                }
+                sketch.endShape();
+            };
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Flow Detection with Visual Feedback</title>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="meyda.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            flex-direction: column;
+        }
+
+        #visual-dot {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: #add8e6; /* Default light blue */
+            transition: background-color 0.5s ease;
+            margin-bottom: 20px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+
+        #mfcc-visualization {
+            width: 800px;
+            height: 100px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="startListening()">Start Listening</button>
+    <button onclick="stopListening()">Stop Listening</button>
+    <div id="visual-dot"></div>
+    <canvas id="mfcc-visualization"></canvas>
+    <div id="result">Waiting for detection...</div>
+    <script>
+        let audioContext, microphone, analyser, gainNode, dataArray, session, meydaAnalyzer;
+        let modelLoaded = false;
+        const RMS_THRESHOLD = 0.005; // Lower threshold to detect quieter sounds
+        const DETECTION_INTERVAL = 500; // Run detection every 500ms
+        let lastDetectionTime = 0;
+
+        const clusterColors = [
+            '#add8e6', // Light blue for cluster 1
+            '#87ceeb', // Slightly darker blue for cluster 2
+            '#4682b4', // Medium blue for cluster 3
+            '#1e90ff', // Darker blue for cluster 4
+            '#00008b'  // Dark blue for cluster 5
+        ];
+
+        async function loadModel() {
+            try {
+                session = await ort.InferenceSession.create('rnn_autoencoder.onnx');
+                modelLoaded = true;
+                console.log("Model loaded successfully.");
+            } catch (error) {
+                console.error("Failed to load ONNX model:", error);
+            }
+        }
+
+        async function startListening() {
+            if (!modelLoaded) {
+                await loadModel();
+            }
+
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioContext.createMediaStreamSource(stream);
+
+                gainNode = audioContext.createGain();
+                gainNode.gain.value = 5.0; // Increase sensitivity
+
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 1024;
+                dataArray = new Float32Array(analyser.fftSize);
+
+                microphone.connect(gainNode);
+                gainNode.connect(analyser);
+
+                // Initialize Meyda Analyzer
+                meydaAnalyzer = Meyda.createMeydaAnalyzer({
+                    audioContext: audioContext,
+                    source: gainNode,
+                    bufferSize: 1024,
+                    featureExtractors: ['mfcc'],
+                    callback: (features) => {
+                        if (features && features.mfcc) {
+                            const currentTime = Date.now();
+                            if (currentTime - lastDetectionTime > DETECTION_INTERVAL) {
+                                lastDetectionTime = currentTime;
+                                handleFeatures(features.mfcc);
+                                updateMfccVisualization(features.mfcc);
+                            }
+                        }
+                    }
+                });
+
+                meydaAnalyzer.start();
+                listenToAudio();
+            } catch (error) {
+                console.error("Microphone access denied or not available.", error);
+            }
+        }
+
+        function stopListening() {
+            if (audioContext && audioContext.state !== 'closed') {
+                audioContext.close();
+            }
+            if (meydaAnalyzer) {
+                meydaAnalyzer.stop();
+            }
+            document.getElementById("result").textContent = "Stopped listening.";
+            console.log("Stopped listening.");
+        }
+
+        async function listenToAudio() {
+            analyser.getFloatTimeDomainData(dataArray);
+
+            // Check RMS (loudness) to decide if we should process the data
+            const rms = calculateRMS(dataArray);
+            if (rms < RMS_THRESHOLD) {
+                document.getElementById("result").textContent = "Waiting for significant sound...";
+                return;
+            }
+
+            requestAnimationFrame(listenToAudio);
+        }
+
+        function calculateRMS(data) {
+            let sum = 0.0;
+            for (let i = 0; i < data.length; i++) {
+                sum += data[i] * data[i];
+            }
+            return Math.sqrt(sum / data.length);
+        }
+
+        function handleFeatures(mfccFeatures) {
+            // Prepare MFCC features for the ONNX model
+            let flattenedFeatures = new Float32Array(100 * 40).fill(0);
+            for (let i = 0; i < Math.min(100, mfccFeatures.length); i++) {
+                for (let j = 0; j < Math.min(40, mfccFeatures[i].length); j++) {
+                    flattenedFeatures[i * 40 + j] = mfccFeatures[i][j];
+                }
+            }
+            runModel(flattenedFeatures);
+        }
+
+        async function runModel(features) {
+    try {
+        const feeds = { 'input': new ort.Tensor('float32', features, [1, 100, 40]) };
+        const results = await session.run(feeds);
+        const outputTensor = results['output'];
+        console.log("Model Output:", outputTensor.data); // Debug: Check what the model is predicting
+        const processedOutput = processOutput(outputTensor.data);
+        
+        document.getElementById("result").textContent = `Detected Cluster: ${processedOutput}`;
+        changeDotColor(processedOutput - 1); // Adjust for 0-based index
+    } catch (error) {
+        console.error("Failed to run the ONNX model:", error);
+    }
+}
+
+        function processOutput(outputData) {
+            // Placeholder: Implement logic to map the model output to clusters
+            const randomCluster = Math.floor(Math.random() * 5) + 1;
+            return randomCluster;
+        }
+
+        function changeDotColor(clusterIndex) {
+            const visualDot = document.getElementById("visual-dot");
+            if (clusterIndex >= 0 && clusterIndex < clusterColors.length) {
+                visualDot.style.backgroundColor = clusterColors[clusterIndex];
+            }
+        }
+
+        function updateMfccVisualization(mfccArray) {
+            const canvas = document.getElementById("mfcc-visualization");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const barWidth = canvas.width / 40;
+            for (let i = 0; i < 40; i++) {
+                const barHeight = Math.min(Math.abs(mfccArray[i]) * 10, canvas.height); // Adjust scaling if necessary
+                ctx.fillStyle = "#4682b4"; // Medium blue color for bars
+                ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth - 2, barHeight);
+            }
+        }
+
+        loadModel();
+    </script>
+</body>
+</html>

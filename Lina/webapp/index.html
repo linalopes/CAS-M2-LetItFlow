@@ -99,13 +99,13 @@
                     body: formData
                 });
 
-                // Verificar se a resposta foi OK antes de tentar fazer o parse do JSON
+                // Check if the response was OK before trying to parse the JSON
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                // Verificar se o backend está retornando o JSON corretamente
-                const result = await response.json();  // Isso pode lançar um erro se o JSON estiver vazio
+                // Check if the backend is returning the JSON correctly
+                const result = await response.json();  // This may throw an error if the JSON is empty
 
                 document.getElementById('result').innerText = `Result: ${result.class}`;
             } catch (error) {

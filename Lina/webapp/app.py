@@ -10,15 +10,15 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Caminho para onde os arquivos de áudio serão temporariamente salvos
+# Path to where audio files will be temporarily saved
 UPLOAD_FOLDER = './uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Certifique-se de que o diretório de uploads exista
+# Make sure the uploads directory exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# Definir a arquitetura do modelo (igual ao que foi treinado)
+# Define the model architecture (same as the one trained)
 class RNNClassifier(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, num_classes):
         super(RNNClassifier, self).__init__()
@@ -35,26 +35,26 @@ class RNNClassifier(nn.Module):
         out = self.fc(out)
         return out
 
-# Definir os parâmetros do modelo
+# Define the model parameters
 input_size = 13  # MFCC features
-hidden_size = 128  # Unidades ocultas
-num_layers = 2  # Camadas LSTM
+hidden_size = 128  # Hidden units
+num_layers = 2  # LSTM layers
 num_classes = 3  # short, medium, long
 
-# Inicializar o modelo
+# Initialize the model
 model = RNNClassifier(input_size, hidden_size, num_layers, num_classes)
 
-# Carregar os pesos do modelo
+# Load model weights
 model.load_state_dict(torch.load('model.pth'))
-model.eval()  # Colocar o modelo em modo de avaliação
+model.eval()  # Put the model into evaluation mode
 
-# Função para extrair características de áudio (MFCC)
+# Function to extract audio features (MFCC)
 def extract_features(audio_path):
     y, sr = librosa.load(audio_path, sr=22050)
     mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
-    return mfcc.T  # Retorna as características como sequência
+    return mfcc.T  # Returns features as a string
 
-# Rota para classificar o áudio
+# Route to classify audio
 @app.route('/classify', methods=['POST'])
 def classify_audio():
     if 'audio' not in request.files:
@@ -68,19 +68,19 @@ def classify_audio():
 
     print(f"File {filename} received and saved at {file_path}")
 
-    # Extrair as características do áudio (MFCC)
+    # Extract audio features (MFCC)
     try:
         features = extract_features(file_path)
 
-        # Transformar as características em tensor
+        # Transform features into tensor
         features_tensor = torch.tensor(features).unsqueeze(0).float()
 
-        # Fazer a previsão com o modelo
+        # Make the prediction with the model
         with torch.no_grad():
             output = model(features_tensor)
             _, predicted = torch.max(output, 1)
 
-        # Mapear a previsão para as classes
+        # Map prediction to classes
         label_map = {0: 'SHORT', 1: 'MEDIUM', 2: 'LONG'}
         result = label_map[predicted.item()]
 

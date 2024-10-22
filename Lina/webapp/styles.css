@@ -1,25 +1,5 @@
 @charset "UTF-8";
-/*
-	Please, compile this file to /css/styles.css (or /css/styles.min.css);
-	You can change the variables in the _custom-variables.scss file;
-	All additional classes, styles, etc. can be found in the _custom.scss file;
-	All other imports are copy-pasted from the bootstrap.scss file. You can comment imports that you don't use to make compiled CSS file weight less.
-*/
-/*
-	Unfortunately, if we want to use some values from the _variables.scss, we should set them here too. 
 
-	Otherwise, we'll catch an error that this variable is undefined. 
-	This is caused because this file included in bootstrap.scss BEFORE the _variables.scss - 
-	we MUST do that because of all the variables in the _variables.scss file has a !default statement. 
-	That means that since this variable was defined it can not be overwritten anymore. 
-	That's why we must put our variables before the default Bootstrap variables to overwrite them, 
-	instead of simply including this file after the _variables.scss. 
-
-	Weird, right? :)
-
-	For example, we assign these default variables here:
-	$white, $teal, $cyan, $font-size-base, $font-weight-bold (maybe some others after writing this comment)
-*/
 :root {
   --bs-deep-purple: #22113e;
   --bs-pink: #EA7DFF;
@@ -100,6 +80,26 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+.pulse-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: red;
+  animation: pulse 1s infinite;
+  margin: 10px auto;
+}
+
+@keyframes pulse {
+  0% {
+      transform: scale(0.8);
+      opacity: 0.7;
+  }
+  100% {
+      transform: scale(1.5);
+      opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {

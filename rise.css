@@ -14,7 +14,7 @@ html {
   font-size: 150%; /* Set to 200% of the default browser size (typically 32px) */
 }
 
-/* Definir a fonte global para toda a apresentação */
+/* Set the global font for the entire presentation */
 .reveal {
   font-family: 'Inter', sans-serif !important;
   color: var(--deep-purple) !important;
@@ -29,7 +29,7 @@ body {
   padding: 0;
 }
 
-/* Estilos para títulos */
+/* Styles for titles */
 .reveal h1 {
   font-family: 'Space Grotesk', sans-serif !important;
   font-size: 3rem !important;
@@ -42,7 +42,7 @@ body {
   color: var(--turquoise) !important;
 }
 
-/* Estilos para listas */
+/* Styles for lists */
 .reveal p, ul, li, ol {
   line-height: 1.5;
   color: var(--deep-purple) !important;

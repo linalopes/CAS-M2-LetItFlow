@@ -1,36 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="favicon.png">
-  <title>Let It Flow</title>
-  <!-- Google Fonts -->
-	<link
-  href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@100;200;300;400;500;600;700;800;900&family=Inter:wght@100;200;300;400;500;600;700;800;900&subset=latin&display=swap"
-  rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="styles.css" rel="stylesheet" />
-  <!-- TensorFlow.js -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/meyda/dist/web/meyda.min.js"></script>
-
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Let It Flow - Pouring Water Web App</title>
+    <link rel="icon" href="favicon.png">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@100;200;300;400;500;600;700;800;900&family=Inter:wght@100;200;300;400;500;600;700;800;900&subset=latin&display=swap"
+        rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-light">
-  <div class="container">
-    <div class="text-center mt-5">
-      <h1>Water Pouring Classifier</h1>
-      <p>Listen to pouring water and classify as Short, Medium, or Long</p>
-    </div>
-    <div class="text-center">
-      <button id="start-btn" class="btn btn-action-1">Start Listening</button>
-      <h2 id="result" class="mt-4">Waiting for input...</h2>
-      <audio id="audio-output" controls class="mt-3"></audio>
-    </div>
-  </div>
-  <!-- Bootstrap JS -->
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="app.js"></script>
+
+<body>
+    <section id="main" class="py-10 py-lg-20 bg-bg-3">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-10 col-xl-10 col-xxl-10">
+                    <h1 class="fs-10 py-5">Pouring Water Classifier</h1>
+                    <button id="micBtn" class="py-3 btn-action-3">Enable Microphone</button>
+                    <button id="recordBtn" class="py-3 btn-action-1" disabled>Record Pouring Water</button>
+                    <p id="status">Microphone not enabled</p>
+                    <div id="recordingIndicator" style="display: none;">
+                        <div class="pulse-circle"></div>
+                    </div>
+                    <p id="result"></p>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="py-10 py-lg-20 bg-bg-3">
+		<div class="container">
+			<div class="row justify-content-center">
+				<div class="col-md-10 col-lg-10 col-xl-10 col-xxl-10">
+					<p class="fs-1 text-center mb-0"> Let It Flow is an interactive web application designed to analyze the sound of water being poured into a glass. By activating the microphone, users can record the pouring sound, which is then sent to a backend that processes the audio data using machine learning. The model classifies the duration of the sound as SHORT, MEDIUM, or LONG, providing real-time feedback. The webapp leverages modern audio processing techniques and neural networks to offer an engaging and dynamic experience.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById('micBtn').addEventListener('click', async () => {
+            // Request permission to use the microphone
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = function (event) {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = function () {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    sendAudioToBackend(audioBlob); // Send the audio to the backend
+                    audioChunks = [];
+                };
+
+                document.getElementById('status').innerText = "Microphone enabled!";
+                document.getElementById('recordBtn').disabled = false; // Enables the record button
+            } catch (err) {
+        document.getElementById('status').innerHTML = `
+            <span style="color: red;">Microphone access denied!</span>
+            <p>Please enable microphone permissions in your browser settings to use this feature.</p>
+        `;
+            }
+        });
+
+        document.getElementById('recordBtn').addEventListener('click', () => {
+            if (mediaRecorder.state === "inactive") {
+                mediaRecorder.start();
+                document.getElementById('status').innerText = "Recording... Press again to stop.";
+                document.getElementById('recordingIndicator').style.display = "block";
+            } else {
+                mediaRecorder.stop();
+                document.getElementById('status').innerText = "Recording stopped.";
+                document.getElementById('recordingIndicator').style.display = "none";
+            }
+        });
+
+        async function sendAudioToBackend(audioBlob) {
+            const formData = new FormData();
+            formData.append('audio', audioBlob);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/classify', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // Verificar se a resposta foi OK antes de tentar fazer o parse do JSON
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Verificar se o backend está retornando o JSON corretamente
+                const result = await response.json();  // Isso pode lançar um erro se o JSON estiver vazio
+
+                document.getElementById('result').innerText = `Result: ${result.class}`;
+            } catch (error) {
+                console.error('Error in sendAudioToBackend:', error);
+                document.getElementById('result').innerText = 'An error occurred while processing the audio.';
+            }
+        }
+    </script>
 </body>
+
 </html>
